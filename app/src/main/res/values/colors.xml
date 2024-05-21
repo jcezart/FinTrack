@@ -16,4 +16,14 @@
     <color name="medium_orange">#FF5726</color>
     <color name="brown">#7A5548</color>
     <color name="grey">#607D8A</color>
+    <color name="holo_red_light">#FFFF4444</color>
+    <color name="holo_green_light">#FF99CC00</color>
+    <color name="holo_orange_light">#FFFFBB33</color>
+    <color name="holo_purple">#FFAA66CC</color>
+    <color name="holo_blue_dark">#FF0099CC</color>
+    <color name="holo_red_dark">#FFCC0000</color>
+    <color name="holo_orange_dark">#FFFF8800</color>
+    <color name="holo_green_dark">#FF669900</color>
+    <color name="holo_blue_bright">#FF00DDFF</color>
+    <color name="darker_gray">#FF444444</color>
 </resources>
