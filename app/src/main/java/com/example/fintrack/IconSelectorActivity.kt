@@ -78,6 +78,7 @@ class IconSelectorActivity : AppCompatActivity() {
             setResult(Activity.RESULT_CANCELED)
             Toast.makeText(this, "No icon selected.", Toast.LENGTH_SHORT).show()
         }
+
         finish()
     }
 }

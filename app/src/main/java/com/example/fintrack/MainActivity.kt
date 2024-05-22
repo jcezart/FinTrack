@@ -52,6 +52,7 @@ class MainActivity : AppCompatActivity() {
         expenses.add(newExpense)
         Log.d("MainActivity", "Added new expense: $newExpense")
         expenseAdapter.submitList(ArrayList(expenses))  // Ensure adapter is notified of data change
+        expenseAdapter.notifyDataSetChanged()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -71,6 +72,7 @@ class MainActivity : AppCompatActivity() {
         rvExpense.adapter = expenseAdapter
         rvExpense.layoutManager = LinearLayoutManager(this)
         expenseAdapter.submitList(expenses)  // Initial empty list
+
 
         val rvCategory = findViewById<RecyclerView>(R.id.rv_categories)
         val categoryAdapter = CategoryAdapter()

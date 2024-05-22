@@ -70,7 +70,7 @@ class ColorSelectorActivity : AppCompatActivity() {
 
                 val intentIcon = Intent(this, IconSelectorActivity::class.java)
                 intentIcon.putExtra("selectedColor", color)
-                startActivity(intentIcon)
+                setResult(RESULT_OK, intentIcon)
                 finish()
             } ?: Toast.makeText(this, "Please select a color", Toast.LENGTH_SHORT).show()
         }
