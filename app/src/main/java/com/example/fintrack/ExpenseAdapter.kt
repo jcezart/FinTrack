@@ -1,5 +1,6 @@
 package com.example.fintrack
 
+import android.annotation.SuppressLint
 import android.os.Build
 import android.view.LayoutInflater
 import android.view.View
@@ -15,6 +16,7 @@ import androidx.recyclerview.widget.RecyclerView
 class ExpenseAdapter: ListAdapter<Expense, ExpenseAdapter.ExpenseViewHolder>(ExpenseDiffUtils()) {
 
                 // Criar um ViewHolder
+            @SuppressLint("SuspiciousIndentation")
             override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ExpenseViewHolder {
                 val view = LayoutInflater.from(parent.context).inflate(R.layout.expense_item, parent, false)
                     return ExpenseViewHolder(view)
