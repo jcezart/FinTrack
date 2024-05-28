@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">FinTrack</string>
+    <string name="_2321_07">2321,07</string>
+    <string name="todo">TODO</string>
+    <string name="r">R$</string>
+    <string name="total_spent">Total Spent</string>
+    <string name="fintrack">FinTrack</string>
 </resources>

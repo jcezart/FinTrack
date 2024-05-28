@@ -32,7 +32,6 @@ class ColorSelectorActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_color_selector)
 
-        Log.d("ColorSelectorActivity", "onCreate called")
 
         // Mapeando os botões
         val btnColor1: Button = findViewById(R.id.btn_color1)
@@ -66,8 +65,6 @@ class ColorSelectorActivity : AppCompatActivity() {
         btnNext.setOnClickListener {
 
             selectedColor?.let { color ->
-                Log.d("ColorSelectorActivity", "Next button clicked with color: $color")
-
                 val intentIcon = Intent(this, IconSelectorActivity::class.java)
                 intentIcon.putExtra("selectedColor", color)
                 setResult(RESULT_OK, intentIcon)
@@ -79,8 +76,6 @@ class ColorSelectorActivity : AppCompatActivity() {
     private fun selectColor(colorResId: Int) {
         selectedColor = colorResId
         val colorName = colorMap[colorResId] ?: "Unknown Color"
-        Log.d("ColorSelectorActivity", "Selected color: $colorName ($colorResId)")
-
         Toast.makeText(this, "Selected color: $colorName", Toast.LENGTH_SHORT).show()
     }
 }
