@@ -30,6 +30,10 @@ class MainActivity : AppCompatActivity() {
         db.getCategoryDAO()
     }
 
+    private val expenseDAO by lazy {
+        db.getExpenseDAO()
+    }
+
 
     companion object {
         private const val REQUEST_COLOR_FROM_COLOR_SELECTOR_ACTIVITY = 1
@@ -46,7 +50,9 @@ class MainActivity : AppCompatActivity() {
             value = 0.0,
             category = "All")
     )
-    private val categories = mutableListOf<Category>()
+    private val categories = mutableListOf(
+        Category(name = "All")
+    )
 
     private var selectedCategory: String = "All"
 
@@ -109,6 +115,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         insertDefaultCategory()
+        insertDefaultExpense()
 
         tvTotalSpent = findViewById(R.id.tv_total_spent)
 
@@ -128,8 +135,9 @@ class MainActivity : AppCompatActivity() {
             showDeleteExpenseDialog(expense)
         }
         rvExpense.adapter = expenseAdapter
+        getExpensesFromDataBase(expenseAdapter)
         rvExpense.layoutManager = LinearLayoutManager(this)
-        expenseAdapter.submitList(expenses)  // Initial empty list
+        //expenseAdapter.submitList(expenses)  // Initial empty list
 
         val rvCategory = findViewById<RecyclerView>(R.id.rv_categories)
         categoryAdapter = CategoryAdapter(
@@ -157,6 +165,41 @@ class MainActivity : AppCompatActivity() {
         }
         GlobalScope.launch(Dispatchers.IO) {
             categoryDAO.insertAll(categoriesEntity)
+        }
+    }
+
+    private fun insertDefaultExpense(){
+        val expensesEntity = expenses.map{
+            ExpenseEntity(
+                name = it.name,
+                barColor = it.barColor,
+                icon = it.icon,
+                value = it.value,
+                category = it.category
+            )
+        }
+        GlobalScope.launch(Dispatchers.IO) {
+            expenseDAO.insertAll(expensesEntity)
+        }
+    }
+
+    private fun getExpensesFromDataBase(expenseListAdapter: ExpenseAdapter) {
+        GlobalScope.launch(Dispatchers.IO) {
+            val expensesFromDb = expenseDAO.getAll()
+            val expensesUiData = expensesFromDb.map{
+                Expense(
+                    name = it.name,
+                    barColor = it.barColor,
+                    icon = it.icon,
+                    value = it.value,
+                    category = it.category
+                )
+            }
+            launch(Dispatchers.Main) {
+                expenses.clear()
+                expenses.addAll(expensesUiData)
+                expenseListAdapter.submitList(ArrayList(expenses))
+            }
         }
     }
 
@@ -213,6 +256,17 @@ class MainActivity : AppCompatActivity() {
         expenses.remove(expense)
         expenseAdapter.notifyDataSetChanged()
         updateTotalSpent()
+
+        GlobalScope.launch(Dispatchers.IO) {
+            expenseDAO.delete(
+                ExpenseEntity(
+                name = expense.name,
+                barColor = expense.barColor,
+                icon = expense.icon,
+                value = expense.value,
+                category = expense.category)
+            )
+        }
     }
 
     private fun showDeleteCategoryDialog(category: Category) {
