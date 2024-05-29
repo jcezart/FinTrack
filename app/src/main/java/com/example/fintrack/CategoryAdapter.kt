@@ -9,14 +9,14 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 
-class CategoryAdapter(private val onCategorySelected: (Category) -> Unit) :
+class CategoryAdapter(private val onCategorySelected: (Category) -> Unit, private val onCategoryLongClicked: (Category) -> Unit) :
     ListAdapter<Category, CategoryAdapter.CategoryViewHolder>(CategoryDiffCallBack()) {
 
     private var selectedCategory: Category? = null
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CategoryViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.category_filter, parent, false)
-        return CategoryViewHolder(view)
+        return CategoryViewHolder(view, onCategoryLongClicked)
     }
 
     override fun onBindViewHolder(holder: CategoryViewHolder, position: Int) {
@@ -29,7 +29,7 @@ class CategoryAdapter(private val onCategorySelected: (Category) -> Unit) :
         notifyDataSetChanged()
     }
 
-    inner class CategoryViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+    inner class CategoryViewHolder(view: View, private val onCategoryLongClicked: (Category) -> Unit) : RecyclerView.ViewHolder(view) {
         private val tvCategory = view.findViewById<TextView>(R.id.tv_category)
 
         fun bind(category: Category, isSelected: Boolean) {
@@ -38,6 +38,11 @@ class CategoryAdapter(private val onCategorySelected: (Category) -> Unit) :
             itemView.setOnClickListener {
                 onCategorySelected(category)
                 selectCategory(category)
+
+                itemView.setOnLongClickListener {
+                    onCategoryLongClicked(category)
+                    true
+                }
             }
         }
     }

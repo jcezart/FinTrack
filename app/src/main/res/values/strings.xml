@@ -5,4 +5,5 @@
     <string name="r">R$</string>
     <string name="total_spent">Total Spent</string>
     <string name="fintrack">FinTrack</string>
+    <string name="valor_despesa">Valor despesa</string>
 </resources>

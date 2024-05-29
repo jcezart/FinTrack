@@ -11,9 +11,25 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.room.Room
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
+
+    private val db by lazy {
+        Room.databaseBuilder(
+            applicationContext,
+            FinTrackDataBase::class.java, "database-FinTrack"
+        ).build()
+    }
+
+    private val categoryDAO by lazy {
+        db.getCategoryDAO()
+    }
+
 
     companion object {
         private const val REQUEST_COLOR_FROM_COLOR_SELECTOR_ACTIVITY = 1
@@ -30,13 +46,8 @@ class MainActivity : AppCompatActivity() {
             value = 0.0,
             category = "All")
     )
-    private val categories = mutableListOf(
-        Category(name = "All"),
-        Category(name = "Home"),
-        Category(name = "Car"),
-        Category(name = "Wife"),
-        Category(name = "Dog")
-    )
+    private val categories = mutableListOf<Category>()
+
     private var selectedCategory: String = "All"
 
     @Deprecated("Deprecated in Java")
@@ -60,8 +71,6 @@ class MainActivity : AppCompatActivity() {
                     addExpense(expenseName, selectedIcon, selectedColor, expenseValue, selectedCategory)
                 }
             }
-        } else {
-            Log.d("MainActivity", "onActivityResult failed with resultCode: $resultCode or data is null")
         }
     }
 
@@ -99,6 +108,8 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        insertDefaultCategory()
+
         tvTotalSpent = findViewById(R.id.tv_total_spent)
 
         val btnAdd: FloatingActionButton = findViewById(R.id.btn_add)
@@ -113,7 +124,7 @@ class MainActivity : AppCompatActivity() {
 
         val rvExpense = findViewById<RecyclerView>(R.id.rv_expense)
         expenseAdapter = ExpenseAdapter { expense ->
-            Log.d("MainActivity", "Expense long clicked: ${expense.name}")
+
             showDeleteExpenseDialog(expense)
         }
         rvExpense.adapter = expenseAdapter
@@ -121,15 +132,48 @@ class MainActivity : AppCompatActivity() {
         expenseAdapter.submitList(expenses)  // Initial empty list
 
         val rvCategory = findViewById<RecyclerView>(R.id.rv_categories)
-        categoryAdapter = CategoryAdapter { category ->
-            filterExpensesByCategory(category.name)
-            categoryAdapter.selectCategory(category)
-        }
+        categoryAdapter = CategoryAdapter(
+            onCategorySelected = { category ->
+                filterExpensesByCategory(category.name)
+                categoryAdapter.selectCategory(category)
+            },
+            onCategoryLongClicked = { category ->
+                showDeleteCategoryDialog(category)
+            }
+        )
         rvCategory.adapter = categoryAdapter
+        getCategoriesFromDataBase(categoryAdapter)
         rvCategory.layoutManager = LinearLayoutManager(this).apply {
             orientation = LinearLayoutManager.HORIZONTAL
         }
-        categoryAdapter.submitList(categories)
+        //categoryAdapter.submitList(categories)
+    }
+
+    private fun insertDefaultCategory(){
+        val categoriesEntity = categories.map {
+            CategoryEntity(
+                name = it.name
+            )
+        }
+        GlobalScope.launch(Dispatchers.IO) {
+            categoryDAO.insertAll(categoriesEntity)
+        }
+    }
+
+    private fun getCategoriesFromDataBase(categoryListAdapter: CategoryAdapter) {
+        GlobalScope.launch(Dispatchers.IO) {
+            val categoriesFromDb = categoryDAO.getAll()
+            val categoriesUiData = categoriesFromDb.map {
+                Category(
+                    name = it.name
+                )
+            }
+            launch(Dispatchers.Main) {
+                categories.clear()
+                categories.addAll(categoriesUiData)
+                categoryListAdapter.submitList(ArrayList(categories))
+            }
+        }
     }
 
     @SuppressLint("NotifyDataSetChanged")
@@ -143,9 +187,11 @@ class MainActivity : AppCompatActivity() {
             .setPositiveButton("Adicionar") { dialog, which ->
                 val categoryName = etCategoryName.text.toString()
                 if (categoryName.isNotBlank()) {
-                    categories.add(Category(name = categoryName))
-                    categoryAdapter.submitList(ArrayList(categories)) // Notifica o adaptador da mudança
-                    categoryAdapter.notifyDataSetChanged()
+                    val newCategory = CategoryEntity(name = categoryName)
+                    GlobalScope.launch(Dispatchers.IO) {
+                        categoryDAO.insertAll(listOf(newCategory))
+                        getCategoriesFromDataBase(categoryAdapter) // Atualiza a lista de categorias no adaptador
+                    }
                 }
             }
             .setNegativeButton("Cancelar", null)
@@ -153,7 +199,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showDeleteExpenseDialog(expense: Expense) {
-        Log.d("MainActivity", "showDeleteExpenseDialog called for expense: ${expense.name}")
         AlertDialog.Builder(this)
             .setTitle("Delete Expense")
             .setMessage("Are you sure you want to delete this expense?")
@@ -164,10 +209,29 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
 
-    @SuppressLint("NotifyDataSetChanged")
     private fun deleteExpense(expense: Expense) {
         expenses.remove(expense)
-        expenseAdapter.submitList(ArrayList(expenses))  // Notifica o adapter sobre a mudança na lista
+        expenseAdapter.notifyDataSetChanged()
         updateTotalSpent()
+    }
+
+    private fun showDeleteCategoryDialog(category: Category) {
+        AlertDialog.Builder(this)
+            .setTitle("Delete category")
+            .setMessage("Are you sure you want to delete this category?")
+            .setPositiveButton("Yes") { _, _ ->
+                deleteCategory(category)
+            }
+            .setNegativeButton("No", null)
+            .show()
+    }
+    private fun deleteCategory(category: Category) {
+        categories.remove(category)
+        categoryAdapter.submitList(ArrayList(categories))
+        categoryAdapter.notifyDataSetChanged()
+
+        GlobalScope.launch(Dispatchers.IO) {
+            categoryDAO.delete(CategoryEntity(name = category.name))
+        }
     }
 }

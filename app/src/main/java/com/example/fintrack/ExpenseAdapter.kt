@@ -40,9 +40,8 @@ class ExpenseAdapter(private val onExpenseLongClicked: (Expense) -> Unit) :
             barColor.setBackgroundColor(color)
 
             itemView.setOnLongClickListener {
-                Log.d("ExpenseAdapter", "Expense long clicked: ${expense.name}")
                 onExpenseLongClicked(expense)
-                true
+                return@setOnLongClickListener true
             }
         }
     }
