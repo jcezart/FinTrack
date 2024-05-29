@@ -8,13 +8,13 @@ import androidx.room.Query
 
 @Dao
 interface ExpenseDAO {
-    @Query("SELECT * FROM expenseentity")
-    fun getAll(): List<ExpenseEntity>
+    @Query("SELECT * FROM expense")
+    fun getAll(): List<Expense>
 
     @Insert
         (onConflict = OnConflictStrategy.REPLACE)
-    fun insertAll(expenseEntity: List<ExpenseEntity>)
+    fun insertAll(expense: List<Expense>)
 
     @Delete
-    suspend fun delete(entity: ExpenseEntity)
+    suspend fun delete(entity: Expense)
 }

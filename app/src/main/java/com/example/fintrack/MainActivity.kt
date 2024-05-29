@@ -43,16 +43,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var expenseAdapter: ExpenseAdapter
     private lateinit var categoryAdapter: CategoryAdapter
     private lateinit var tvTotalSpent: TextView
-    private val expenses = mutableListOf(
-        Expense(name = "Exemplo",
-            barColor = R.color.holo_red_light,
-            icon = R.drawable.ic_wifi,
-            value = 0.0,
-            category = "All")
-    )
-    private val categories = mutableListOf(
-        Category(name = "All")
-    )
+    private val expenses = mutableListOf<Expense>()
+    private val categories = mutableListOf<Category>()
 
     private var selectedCategory: String = "All"
 
@@ -82,10 +74,15 @@ class MainActivity : AppCompatActivity() {
 
     private fun addExpense(expenseName: String, iconResId: Int, colorResId: Int, expenseValue: Double, category: String) {
         val newExpense = Expense(name = expenseName, barColor = colorResId, icon = iconResId, value = expenseValue, category = category)
-        expenses.add(newExpense)
-        expenseAdapter.submitList(ArrayList(expenses))  // Ensure adapter is notified of data change
+
+        GlobalScope.launch(Dispatchers.IO) {
+            expenseDAO.insertAll(listOf(newExpense))
+            getExpensesFromDataBase(expenseAdapter)
+        }
+        expenseAdapter.submitList(ArrayList(expenses))
         updateExpensesList()
         updateTotalSpent()
+        expenseAdapter.notifyDataSetChanged()
     }
 
     @SuppressLint("NotifyDataSetChanged")
@@ -137,7 +134,7 @@ class MainActivity : AppCompatActivity() {
         rvExpense.adapter = expenseAdapter
         getExpensesFromDataBase(expenseAdapter)
         rvExpense.layoutManager = LinearLayoutManager(this)
-        //expenseAdapter.submitList(expenses)  // Initial empty list
+
 
         val rvCategory = findViewById<RecyclerView>(R.id.rv_categories)
         categoryAdapter = CategoryAdapter(
@@ -154,7 +151,7 @@ class MainActivity : AppCompatActivity() {
         rvCategory.layoutManager = LinearLayoutManager(this).apply {
             orientation = LinearLayoutManager.HORIZONTAL
         }
-        //categoryAdapter.submitList(categories)
+
     }
 
     private fun insertDefaultCategory(){
@@ -165,12 +162,13 @@ class MainActivity : AppCompatActivity() {
         }
         GlobalScope.launch(Dispatchers.IO) {
             categoryDAO.insertAll(categoriesEntity)
+            updateTotalSpent()
         }
     }
 
     private fun insertDefaultExpense(){
         val expensesEntity = expenses.map{
-            ExpenseEntity(
+            Expense(
                 name = it.name,
                 barColor = it.barColor,
                 icon = it.icon,
@@ -180,6 +178,7 @@ class MainActivity : AppCompatActivity() {
         }
         GlobalScope.launch(Dispatchers.IO) {
             expenseDAO.insertAll(expensesEntity)
+            updateTotalSpent()
         }
     }
 
@@ -199,6 +198,7 @@ class MainActivity : AppCompatActivity() {
                 expenses.clear()
                 expenses.addAll(expensesUiData)
                 expenseListAdapter.submitList(ArrayList(expenses))
+                updateTotalSpent()
             }
         }
     }
@@ -254,18 +254,18 @@ class MainActivity : AppCompatActivity() {
 
     private fun deleteExpense(expense: Expense) {
         expenses.remove(expense)
-        expenseAdapter.notifyDataSetChanged()
-        updateTotalSpent()
-
         GlobalScope.launch(Dispatchers.IO) {
             expenseDAO.delete(
-                ExpenseEntity(
-                name = expense.name,
-                barColor = expense.barColor,
-                icon = expense.icon,
-                value = expense.value,
-                category = expense.category)
+                Expense(
+                    name = expense.name,
+                    barColor = expense.barColor,
+                    icon = expense.icon,
+                    value = expense.value,
+                    category = expense.category)
             )
+            getExpensesFromDataBase(expenseAdapter)
+            updateTotalSpent()
+            //expenseAdapter.notifyDataSetChanged()
         }
     }
 
