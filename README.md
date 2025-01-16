@@ -9,7 +9,7 @@ Funcionalidades
 
 ## :camera_flash: Screenshots
 <!-- You can add more screenshots here if you like -->
-<img src="https://github.com/user-attachments/assets/telainicial" width=260/> <img src="https://github.com/user-attachments/assets/addcategoria" width=260/>
+<img src="https://github.com/jcezart/FinTrack/blob/master/tela%20inicial.png" width=260/> <img src="https://github.com/jcezart/FinTrack/blob/master/addcategoria.png" width=260/> <img src="https://github.com/jcezart/FinTrack/blob/master/adddespesa1.png" width=260/> <img src="https://github.com/jcezart/FinTrack/blob/master/adddespesa2.png" width=260/>
 
 
 
